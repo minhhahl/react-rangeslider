@@ -30,7 +30,10 @@ class Slider extends Component {
     value: PropTypes.number,
     orientation: PropTypes.string,
     onChange: PropTypes.func,
-    className: PropTypes.string
+    className: PropTypes.string,
+    labelFormat: PropTypes.func,
+    subFix: PropTypes.string,
+    disableLabel: PropTypes.bool
   }
 
   static defaultProps = {
@@ -38,7 +41,10 @@ class Slider extends Component {
     max: 100,
     step: 1,
     value: 0,
-    orientation: 'horizontal'
+    orientation: 'horizontal',
+    labelFormat: undefined,
+    subFix: undefined,
+    disableLabel: false
   }
 
   constructor (props, context) {
@@ -206,34 +212,42 @@ class Slider extends Component {
   }
 
   render () {
-    const { value, orientation, className } = this.props
+    const { value, orientation, className, labelFormat, disableLabel, subFix } = this.props
     const dimension = constants.orientation[orientation].dimension
     const direction = constants.orientation[orientation].direction
     const position = this.getPositionFromValue(value)
     const coords = this.coordinates(position)
     const fillStyle = { [dimension]: `${coords.fill}px` }
     const handleStyle = { [direction]: `${coords.handle}px` }
+    const isCloseEnd = (this.state.limit - coords.fill <= 50 ? ' close-end' : '');
+    const isCloseBegin = (coords.fill <= 50 ? ' close-begin' : '');
 
     return (
       <div
         ref={(s) => { this.slider = s }}
-        className={cx('rangeslider', `rangeslider-${orientation}`, className)}
+        className={cx('rangeSlider', `rangeSlider-${orientation}`, className)}
         onMouseDown={this.handleDrag}
         onTouchStart={this.handleDrag}
         onTouchEnd={this.handleNoop}
       >
         <div
-          className='rangeslider__fill'
+          className='rangeSlider__fill'
           style={fillStyle}
         />
         <div
           ref={(sh) => { this.handle = sh }}
-          className='rangeslider__handle'
+          className={'rangeSlider__handle' + isCloseEnd + isCloseBegin}
           onMouseDown={this.handleStart}
           onTouchEnd={this.handleNoop}
           onTouchMove={this.handleDrag}
           style={handleStyle}
-        />
+        >
+          { !disableLabel &&
+              <output className={subFix !== undefined ? subFix : 'output'}>
+                {labelFormat === undefined ? value : labelFormat(value)}
+              </output>
+          }
+        </div>
       </div>
     )
   }
